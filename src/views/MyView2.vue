@@ -1,5 +1,5 @@
 <template>
-    <div id="app">
+    <div class="myview2">
       <div class="components-panel">
         <button @click="addPro('title')">Add TitlePro</button>
         <button @click="addPro('text')">Add TextPro</button>
@@ -202,7 +202,7 @@
   };
   </script>
   
-  <style>
+  <style scoped>
   .canvas {
     max-width: 375px; /* 或者使用 100vw 来确保宽度在视口宽度内 */
     height: 667px; /* 模拟常见的H5页面高度 */

@@ -1,8 +1,9 @@
+<!-- eslint-disable vue/no-mutating-props -->
 <template>
   <div>
-    <h2> {{ title }} </h2>
-    <p> {{ content }} </p>
-    <img :src="src" :alt="alt" style="max-width: 100%;">
+    <h2> {{ myTitle }} </h2>
+    <p> {{ myContent }} </p>
+    <img :src="mySrc" :alt="myAlt" style="max-width: 100%;">
     <el-button @click="openDialog">编辑</el-button>
 
     <el-dialog
@@ -11,19 +12,19 @@
       @close="reset">
       <el-form>
         <el-form-item label="标题">
-          <el-input v-model="editableTitle"></el-input>
-          <el-switch v-model="switchStates[0]" active-text="添加备注"></el-switch>
-          <el-input v-if="switchStates[0]" v-model="notes[0]" placeholder="请输入标题备注"></el-input>
+          <el-input v-model="myTitle"></el-input>
+          <el-switch v-model="mySwitchStates[0]" active-text="添加备注"></el-switch>
+          <el-input v-if="mySwitchStates[0]" v-model="myNotes[0]" placeholder="请输入标题备注"></el-input>
         </el-form-item>
         <el-form-item label="内容">
-          <el-input type="textarea" v-model="editableContent"></el-input>
-          <el-switch v-model="switchStates[1]" active-text="添加备注"></el-switch>
-          <el-input v-if="switchStates[1]" v-model="notes[1]" placeholder="请输入内容备注"></el-input>
+          <el-input type="textarea" v-model="myContent"></el-input>
+          <el-switch v-model="mySwitchStates[1]" active-text="添加备注"></el-switch>
+          <el-input v-if="mySwitchStates[1]" v-model="myNotes[1]" placeholder="请输入内容备注"></el-input>
         </el-form-item>
         <el-form-item label="图片URL">
-          <el-input v-model="editableSrc"></el-input>
-          <el-switch v-model="switchStates[2]" active-text="添加备注"></el-switch>
-          <el-input v-if="switchStates[2]" v-model="notes[2]" placeholder="请输入图片URL备注"></el-input>
+          <el-input v-model="mySrc"></el-input>
+          <el-switch v-model="mySwitchStates[2]" active-text="添加备注"></el-switch>
+          <el-input v-if="mySwitchStates[2]" v-model="myNotes[2]" placeholder="请输入图片URL备注"></el-input>
         </el-form-item>
       </el-form>
       <template v-slot:footer>
@@ -43,41 +44,68 @@ export default {
     content: String,
     src: String,
     alt: String,
+    switchStates: {
+      type: Array,
+      default: () => [false, false, false],
+    },
+    notes: {
+      type: Array,
+      default: () => ['', '', ''],
+    },
   },
   data() {
     return {
       dialogVisible: false,
-      editableTitle: '',
-      editableContent: '',
-      editableSrc: '',
-      switchStates: [false, false, false], // 初始状态为所有开关关闭
-      notes: ['', '', ''], // 初始备注为空
+      myTitle: this.title,
+      myContent: this.content,
+      mySrc: this.src,
+      mySwitchStates: [...this.switchStates],
+      myNotes: [...this.notes],
     };
+  },
+  watch: {
+    title(newVal) {
+      this.myTitle = newVal;
+    },
+    content(newVal) {
+      this.myContent = newVal;
+    },
+    src(newVal) {
+      this.mySrc = newVal;
+    },
+    switchStates: {
+      deep: true,
+      handler(newVal) {
+        this.mySwitchStates = [...newVal];
+      }
+    },
+    notes: {
+      deep: true,
+      handler(newVal) {
+        this.myNotes = [...newVal];
+      }
+    }
   },
   methods: {
     openDialog() {
       this.dialogVisible = true;
-      this.editableTitle = this.title;
-      this.editableContent = this.content;
-      this.editableSrc = this.src;
-    },
-    reset() {
-      // 重置开关状态和备注为初始值
-      this.switchStates = [false, false, false];
-      this.notes = ['', '', ''];
+      this.myTitle = this.title;
+      this.myContent = this.content;
+      this.mySrc = this.src;
+      this.mySwitchStates = [...this.switchStates];
+      this.myNotes = [...this.notes];
     },
     save() {
       this.$emit('update:content', {
         content: {
-          title: this.editableTitle,
-          content: this.editableContent,
-          src: this.editableSrc,
+          title: this.myTitle,
+          content: this.myContent,
+          src: this.mySrc,
+          switchStates: this.mySwitchStates, // 将开关状态数组传递给父组件
+          notes: this.myNotes, // 将备注数组传递给父组件
         },
-        switchStates: this.switchStates, // 将开关状态数组传递给父组件
-        notes: this.notes, // 将备注数组传递给父组件
       });
       this.dialogVisible = false;
-      this.reset();
     }
   },
 };

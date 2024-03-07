@@ -1,5 +1,5 @@
 <template>
-    <div id="app">
+    <div class="myvue3">
       <div class="components-panel">
         <button @click="addUltra('BeautyPro')">Add BeautyUltra</button>
         <input type="file" @change="handleFileUpload">
@@ -208,7 +208,7 @@
   };
   </script>
   
-  <style>
+  <style scoped>
   .canvas {
     max-width: 375px; /* 或者使用 100vw 来确保宽度在视口宽度内 */
     height: 667px; /* 模拟常见的H5页面高度 */

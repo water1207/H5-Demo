@@ -16,16 +16,5 @@ export default {
 </script>
 
 <style>
-.canvas {
-  max-width: 375px; /* 或者使用 100vw 来确保宽度在视口宽度内 */
-  height: 667px; /* 模拟常见的H5页面高度 */
-  margin: auto;
-  border: 1px solid #ccc;
-  position: relative;
-  overflow: hidden;
-}
 
-.canvas-component {
-  position: relative;
-}
 </style>
