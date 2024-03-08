@@ -4,6 +4,8 @@
         <button @click="addWidget('CombineWidget')">Add CombineWidget</button>
         <button @click="saveTemplate">Export</button>  
         <button @click="loadTemplate">load</button>
+        <input type="file" @change="handleFileUpload">
+        <button @click="exportHtmlPages">Export Pages</button>
       </div>
       <div class="canvas">
         <div v-for="(item, index) in widgets" :key="index" class="canvas-component">
@@ -24,6 +26,7 @@
   <script>
   import CombineWidget from '../widget/CombineWidget.vue';
   import axios from 'axios';
+  import * as XLSX from 'xlsx';
 
   export default {
     name: 'MyView4',
@@ -86,6 +89,112 @@
           
           return { widgets, dynamics, dynamicsNotes };
         },
+        loadTemplate(templateId) {
+          // 使用axios请求模板数据
+          axios.get(`/api/gett`).then(response => {
+            const templateData = response.data;
+            this.applyTemplate(templateData);
+          }).catch(error => {
+            console.error("加载模板数据失败", error);
+          });
+        },
+        applyTemplate(templateData) {
+          this.widgets = templateData.widgets;
+          this.dynamics = templateData.dynamics;
+          this.dynamicsNotes = templateData.dynamicsNotes;
+        },
+        handleFileUpload(event) {
+          const file = event.target.files[0];
+          const reader = new FileReader();
+          reader.onload = (e) => {
+            const data = e.target.result;
+            const workbook = XLSX.read(data, { type: 'binary' });
+            const jsonData = XLSX.utils.sheet_to_json(workbook.Sheets[workbook.SheetNames[0]]);
+            this.processExcelData(jsonData);
+          };
+          reader.readAsBinaryString(file);
+        },
+
+        processExcelData(excelData) {
+          // excelData 是一个数组，每个元素代表一行Excel数据
+          // 初始化一个数组，用于存储每个页面的数据
+          let pages = [];
+          const pagesData = excelData.map(row => {
+            // 根据Excel行数据和widgets模板创建页面数据结构
+            const pageData = this.generateHtml(row);
+            pages.push(pageData);
+            return pageData;
+          });
+
+          this.exportHtmlPages(pages);
+        },
+        generateHtml(row) {
+            let i = 0;
+            let j = 1;
+            let html = '<html><head><style>.page { margin: 20px; padding: 20px; border: 1px solid #ccc; } h1, p { margin: 0; padding: 10px 0; }</style></head><body>';
+            html += `<div class="app">`;
+            console.log(this.widgets);
+            console.log(this.dynamics);
+            console.log(row);
+            this.widgets.forEach(item => {
+              if(item.type == "Combine") {
+                html += `<div class${item.type}>`
+              }
+              Object.keys(item.props).forEach(key => {
+                let value = "";
+                if(key == "switchStates" || key == "notes") {
+                  return;
+                }
+                if(this.dynamics[i] == true) {
+                  value = row[j];
+                  console.log("key:", key, value);
+                  j ++;
+                }else {
+                  value = item.props[key];
+                }
+                if(key == "title")
+                  html += `<h2>${value}</h2>`;
+                if(key == "content")
+                  html += `<p>${value}</p>`;
+                if(key == "src")
+                  html += `<img src="${value}" alt="${value}" style="max-width: 100%;">`;
+
+                i ++;
+              })
+              html += `</div>`;
+            });
+            html += `</div></body></html>`;
+
+            return html;
+        },
+
+        downloadHtml(html, filename) {
+          const blob = new Blob([html], {type: 'text/html'});
+          const link = document.createElement('a');
+          link.href = URL.createObjectURL(blob);
+          link.download = filename;
+          document.body.appendChild(link);
+          link.click();
+          document.body.removeChild(link);
+        },
+
+        async exportHtmlPages(pages) {
+          for (let i = 0; i < pages.length; i++) {
+            if (i % 10 == 0) {
+              await this.pause();
+            }
+            const page = pages[i];
+            console.log(page);
+            this.downloadHtml(page, `page-${i + 1}.html`);
+          }
+        },
+        pause() {
+          return new Promise(resolve => {
+            setTimeout(() => {
+              resolve();
+            }, 1000);
+          });
+        },
         deleteWidget(index) {
           this.widgets.splice(index, 1);
         },
@@ -102,20 +211,6 @@
             this.widgets.splice(index, 1);
             this.widgets.splice(index + 1, 0, itemToMove);
           }
-        },
-        loadTemplate(templateId) {
-          // 示例：使用axios获取模板数据
-          axios.get(`/api/gett`).then(response => {
-            const templateData = response.data;
-            this.applyTemplate(templateData);
-          }).catch(error => {
-            console.error("加载模板数据失败", error);
-          });
-        },
-        applyTemplate(templateData) {
-          this.widgets = templateData.widgets;
-          this.dynamics = templateData.dynamics;
-          this.dynamicsNotes = templateData.dynamicsNotes;
         },
     }
 }
