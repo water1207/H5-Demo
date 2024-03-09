@@ -5,6 +5,8 @@ Mock.setup({
 })
 // Mock数据示例
 Mock.mock('/api/gett', {
+    id : 1001,
+    name: 'template1',
     widgets: [
         {
           type: "Combine",

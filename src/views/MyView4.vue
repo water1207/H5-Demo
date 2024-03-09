@@ -2,8 +2,8 @@
     <div class="myview4">
       <div class="components-panel">
         <button @click="addWidget('CombineWidget')">Add CombineWidget</button>
-        <button @click="saveTemplate">Export</button>  
-        <button @click="loadTemplate">load</button>
+        <button @click="saveTemplate()">Export</button>  
+        <button @click="loadTemplate(2)">load</button>
         <input type="file" @change="handleFileUpload">
         <button @click="exportHtmlPages">Export Pages</button>
       </div>
@@ -83,16 +83,24 @@
 
           this.dynamics = dynamics;
           this.notes = dynamicsNotes;
+          let name = "test1";
+          const templateData = { 
+            name: "test1",
+            data: JSON.stringify({widgets, dynamics, dynamicsNotes}),
+          };
 
           // 根据需要返回或使用 dynamics 和 dynamicsNotes
           // 例如，返回一个对象以便外部使用或传递给后端
-          
-          return { widgets, dynamics, dynamicsNotes };
+          axios.post('http://127.0.0.1:8088/api/templates/save', templateData).then(response => {
+            console.log('模板保存成功', response);
+          }).catch(error => {
+            console.error('模板保存失败', error);
+          });
         },
         loadTemplate(templateId) {
           // 使用axios请求模板数据
-          axios.get(`/api/gett`).then(response => {
-            const templateData = response.data;
+          axios.get(`http://127.0.0.1:8088/api/templates/get?id=${templateId}`, ).then(response => {
+            const templateData = JSON.parse(response.data.data);
             this.applyTemplate(templateData);
           }).catch(error => {
             console.error("加载模板数据失败", error);
