@@ -3,7 +3,8 @@
       <div class="components-panel">
         <button @click="addWidget('CombineWidget')">Add CombineWidget</button>
         <button @click="saveTemplate()">Export</button>  
-        <button @click="loadTemplate(2)">load</button>
+        <button @click="loadTemplate(1)">load</button>
+        <button @click="updateTemplate(1)">update</button>
         <input type="file" @change="handleFileUpload">
         <button @click="exportHtmlPages">Export Pages</button>
       </div>
@@ -106,6 +107,21 @@
             console.error("加载模板数据失败", error);
           });
         },
+
+        updateTemplate(templateId) {
+          const templateData = { 
+            id: templateId,
+            name: "test1",
+            data: JSON.stringify({widgets: this.widgets, dynamics: this.dynamics, dynamicsNotes: this.dynamicsNotes}),
+          };
+          axios.post('http://127.0.0.1:8088/api/templates/update', templateData).then(response => {
+            console.log('模板保存成功', response);
+          }).catch(error => {
+            console.error('模板保存失败', error);
+          });
+
+        },
+
         applyTemplate(templateData) {
           this.widgets = templateData.widgets;
           this.dynamics = templateData.dynamics;
