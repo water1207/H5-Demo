@@ -6,7 +6,7 @@
         <button @click="loadTemplate(1)">load</button>
         <button @click="updateTemplate(1)">update</button>
         <input type="file" @change="handleFileUpload">
-        <button @click="exportHtmlPages">Export Pages</button>
+        <button @click="publishHtml">Publish</button>
       </div>
       <div class="canvas">
         <div v-for="(item, index) in widgets" :key="index" class="canvas-component">
@@ -39,6 +39,7 @@
         widgets: [],
         dynamics: [],
         dynamicsNotes: [],
+        pages: [],
       };
     },
     methods: {
@@ -111,7 +112,6 @@
         updateTemplate(templateId) {
           const templateData = { 
             id: templateId,
-            name: "test1",
             data: JSON.stringify({widgets: this.widgets, dynamics: this.dynamics, dynamicsNotes: this.dynamicsNotes}),
           };
           axios.post('http://127.0.0.1:8088/api/templates/update', templateData).then(response => {
@@ -119,7 +119,6 @@
           }).catch(error => {
             console.error('模板保存失败', error);
           });
-
         },
 
         applyTemplate(templateData) {
@@ -142,15 +141,12 @@
         processExcelData(excelData) {
           // excelData 是一个数组，每个元素代表一行Excel数据
           // 初始化一个数组，用于存储每个页面的数据
-          let pages = [];
-          const pagesData = excelData.map(row => {
+          const pages = excelData.map(row => {
             // 根据Excel行数据和widgets模板创建页面数据结构
-            const pageData = this.generateHtml(row);
-            pages.push(pageData);
-            return pageData;
+            return this.generateHtml(row);
           });
-
-          this.exportHtmlPages(pages);
+          this.pages = pages;
+          // this.exportHtmlPages(pages);
         },
         generateHtml(row) {
             let i = 0;
@@ -202,7 +198,18 @@
           document.body.removeChild(link);
         },
 
-        async exportHtmlPages(pages) {
+        publishHtml() {
+          const content = this.generateHtml();
+          axios.post('http://127.0.0.1:8088/api/pages/publish', {content: content}).then(response => {
+            console.log('页面发布成功', response);
+          }).catch(error => {
+            console.error('页面发布失败', error);
+          });
+          //this.downloadHtml(content, 'index.html');
+        },
+
+        async exportHtmlPages() {
+          let pages = this.pages;
           for (let i = 0; i < pages.length; i++) {
             if (i % 10 == 0) {
               await this.pause();
